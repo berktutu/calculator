@@ -1,5 +1,6 @@
 const allBtns = document.querySelector(".buttons");
 const operators = document.querySelectorAll(".operator");
+const cleaners = document.querySelectorAll(".cleaner");
 const digits = document.querySelectorAll(".digit");
 const display = document.querySelector("#display");
 const addOp = document.querySelector(".add");
@@ -7,6 +8,8 @@ const subOp = document.querySelector(".subtract");
 const multiplyOp = document.querySelector(".multiply");
 const divideOp = document.querySelector(".divide");
 const remainderOp = document.querySelector(".remainder");
+const equals = document.querySelector(".equals");
+const decimalBtn = document.querySelector(".decimal");
 
 // Operator functions
 
@@ -31,10 +34,11 @@ const remainder = function (a, b) {
 };
 
 // Main variables
-let firstNumber;
-let operator;
-let secondNumber;
+let firstNumber = null;
+let secondNumber = null;
+let operator = null;
 let displayValue = "";
+let isOperatorPressed = false;
 
 // Function to operate with given numbers
 const operate = function (operator, firstNum, secondNum) {
@@ -43,7 +47,7 @@ const operate = function (operator, firstNum, secondNum) {
 
 // Function to display the numbers
 
-const calculation = function () {
+const displayScreen = function () {
   const displayAppend = function (value) {
     displayValue += value;
     updateDisplay();
@@ -51,10 +55,17 @@ const calculation = function () {
 
   const clearDisplay = function () {
     displayValue = "";
+    firstNumber = null;
+    secondNumber = null;
+    operator = null;
     updateDisplay();
   };
 
   const clearLastValue = function () {
+    if (isOperatorPressed) {
+      displayValue = "";
+      isOperatorPressed = false;
+    }
     displayValue = display.value.slice(0, -1);
     updateDisplay();
   };
@@ -69,7 +80,7 @@ const calculation = function () {
     })
   );
 
-  operators.forEach((btn) =>
+  cleaners.forEach((btn) =>
     btn.addEventListener("click", function (e) {
       if (e.target.classList.contains("all-clear")) {
         clearDisplay();
@@ -78,11 +89,67 @@ const calculation = function () {
       if (e.target.classList.contains("clear")) {
         clearLastValue();
       }
+    })
+  );
 
-      if (e.target.classList.contains("remainder")) {
-        displayAppend(e.target.textContent);
+  operators.forEach((op) =>
+    op.addEventListener("click", function (e) {
+      if (firstNumber === null) {
+        firstNumber = parseFloat(displayValue);
+        operator = e.target.textContent;
+        displayValue = "";
+      } else if (operator) {
+        secondNumber = parseFloat(displayValue);
+        let result = calculate();
+        displayValue = result.toString();
+        updateDisplay();
+        firstNumber = result;
       }
     })
   );
+
+  equals.addEventListener("click", function () {
+    if (firstNumber !== null && displayValue !== "") {
+      secondNumber = parseFloat(displayValue);
+      let result = calculate();
+      displayValue = result.toString();
+      updateDisplay();
+      firstNumber = null;
+      secondNumber = null;
+      operator = null;
+      isOperatorPressed = false;
+    }
+  });
+
+  const calculate = function () {
+    let result;
+    switch (operator) {
+      case "+":
+        result = operate(add, firstNumber, secondNumber);
+        break;
+      case "-":
+        result = operate(subtract, firstNumber, secondNumber);
+        break;
+      case "*":
+        result = operate(multiply, firstNumber, secondNumber);
+        break;
+      case "/":
+        result = operate(divide, firstNumber, secondNumber);
+        break;
+      case "%":
+        result = operate(remainder, firstNumber, secondNumber);
+        break;
+      default:
+        result = "Error";
+    }
+    return result;
+  };
+
+  const decimalBtn = document.querySelector(".decimal");
+  decimalBtn.addEventListener("click", function () {
+    if (!displayValue.includes(".")) {
+      displayAppend(".");
+    }
+  });
 };
-calculation();
+displayScreen();
